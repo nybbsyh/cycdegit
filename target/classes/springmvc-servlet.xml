@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/mvc
+       https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+    <!--注解的扫描-->
+    <context:component-scan base-package="cn.App.controller"></context:component-scan>
+    <!--配置自定义的数据转换器-->
+
+    <bean  id="stringToDateConvrter" class="org.springframework.context.support.ConversionServiceFactoryBean">
+        <property name="converters">
+            <bean class="cn.App.util.StringToDateConvrter"></bean>
+        </property>
+    </bean>
+    <!--mvc的一键式配置，用于springMvc注解的开发
+    message-converters 解决返回信息的中文乱码问题
+    -->
+   <mvc:annotation-driven conversion-service="stringToDateConvrter">
+       <mvc:message-converters>
+           <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+             <property name="supportedMediaTypes">
+                 <list>
+                     <value>applicantion/json;charset=UTF-8</value>
+                 </list>
+             </property>
+           </bean>
+           <bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+               <property name="supportedMediaTypes">
+                   <list>
+                       <value>text/html;charset=UTF-8</value>
+                       <value>applicantion/json</value>
+                   </list>
+               </property>
+               <property name="features">
+                   <list>
+                       <value>WriteDateUseDateFormat</value>
+                   </list>
+               </property>
+           </bean>
+       </mvc:message-converters>
+   </mvc:annotation-driven>
+    <!--mvc配置静态资源文件的映射关系-->
+    <mvc:resources mapping="/statics/**" location="/statics/"></mvc:resources>
+  <!--  &lt;!&ndash;全局的异常处理配置&ndash;&gt;
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+       <props>
+      <prop key="java.lang.RuntimeException">syserror</prop>
+      </props>
+        </property>
+    </bean>-->
+    <!--配置Controller的bean, name属性：对应网络请求-->
+   <!-- <bean name="/hello.html" class="cn.controller.HelloController" ></bean>-->
+    <!--视图解析器 的配置：帮助我们找到视图页面（web-inf文件夹下边）此文件夹不允许外部请求直接访问-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"></property><!--前缀-->
+        <property name="suffix" value=".jsp"></property><!--后缀-->
+    </bean>
+
+    <!--多视图解析器-->
+    <bean class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+        <!--允许使用参数format=json进行mime类型匹配-->
+      <property name="favorParameter" value="true"></property>
+        <!--允许xxx.html后缀来匹配 匹配mime-->
+      <!--  <property name="favorPathExtension" value="true"></property>-->
+        <property name="defaultContentType" value="text/html"></property>
+        <property name="mediaTypes">
+         <value>
+             html=text/html
+             json=application/json
+             xml=application/xml
+         </value>
+        </property>
+    </bean>
+   <!--配置文件上传的解析器-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxInMemorySize" value="5000000"/>
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+    <!--拦截器配置--><!-- 拦截器配置 -->
+    <!-- 以下配置将拦截所有的URL请求 -->
+
+    <!--拦截器-->
+    <mvc:interceptors>
+        <!--开发者端的拦截器 不拦截后台访问-->
+        <mvc:interceptor>
+            <mvc:mapping path="/**" />
+            <mvc:exclude-mapping path="/statics/**"/>
+            <mvc:exclude-mapping path="/devUser/**"/>
+            <mvc:exclude-mapping path="/Version/**"/>
+            <mvc:exclude-mapping path="/*/devMain"/>
+            <mvc:exclude-mapping path="/*/DevUserlogin"/>
+            <mvc:exclude-mapping path="/*/error"/>
+            <!--  <mvc:exclude-mapping path="/common/**"/>-->
+            <bean class="cn.App.util.Interceptor"/>
+        </mvc:interceptor>
+        <!--后台的拦截器 不拦截开发者端-->
+  <!--      <mvc:interceptor>
+            <mvc:mapping path="/**" />
+            <mvc:exclude-mapping path="/statics/**"/>
+            <mvc:exclude-mapping path="/AppInfoSystem/**"/>
+            <mvc:exclude-mapping path="/*/toLogin"/>
+            <mvc:exclude-mapping path="/*/dologin"/>
+            <mvc:exclude-mapping path="/*/error"/>
+            <mvc:exclude-mapping path="/dev/**"/>
+            <bean class="cn.appInfo.util.AppInterceptor2"/>
+        </mvc:interceptor>-->
+    </mvc:interceptors>
+
+</beans>

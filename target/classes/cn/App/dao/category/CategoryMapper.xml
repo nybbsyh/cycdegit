@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--mapper的命名空间 必须和某一个DAO的接口文件路径一致（包名.接口）-->
+<mapper namespace="cn.App.dao.category.CategoryMapper">
+
+    <select id="categoryLevel3List" resultType="cn.App.entity.category">
+
+    </select>
+    <select id="categoryLevel2List" resultType="cn.App.entity.category">
+        select id,categoryName from app_category
+        where parentId = #{parentId}
+    </select>
+    <select id="categoryLevel1List" resultType="cn.App.entity.category">
+        SELECT id,categoryName FROM app_category WHERE parentId IS NULL
+    </select>
+</mapper>

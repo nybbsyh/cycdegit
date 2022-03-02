@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--mapper的命名空间 必须和某一个DAO的接口文件路径一致（包名.接口）-->
+<mapper namespace="cn.App.dao.backendUser.BackUserMapper">
+    <update id="updateStatus">
+        update app_info
+        <set>
+         status=#{status}
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="login" resultType="cn.App.entity.backendUser">
+        SELECT  b.userName,d.valueName as userTypeName,d.valueId,b.userPassword FROM backend_user b
+            LEFT JOIN (SELECT *from data_dictionary
+            WHERE typeCode ='USER_TYPE') as d
+           ON d.valueId=b.userType WHERE  b.userCode=#{userCode}
+    </select>
+    <select id="selectListInfo" resultType="cn.App.entity.info">
+        SELECT DISTINCT a.versionId,a.softwareName,a.APKName,a.softwareSize,c.valueName as flatformName,c1.categoryName AS categoryLevel1Name,
+        c2.categoryName AS categoryLevel2Name,c3.categoryName AS categoryLevel3Name,cs.valueName as statusName,
+        a.downloads,a.status,a.id,a.categoryLevel1,a.categoryLevel2,a.categoryLevel3,v.versionNo
+        FROM app_info a
+        JOIN(SELECT valueId,valueName FROM data_dictionary
+        WHERE typeCode= "APP_FLATFORM") as c
+        on a.flatformId=c.valueId
+        JOIN(SELECT g.id as id,g.categoryName as categoryName  from app_category g
+        join app_info i
+        on g.id=i.categoryLevel1) as c1
+        on c1.id=a.categoryLevel1
+        JOIN(SELECT g.id as id,g.categoryName as categoryName  from app_category g
+        join app_info i
+        on g.id=i.categoryLevel2) as c2
+        on c2.id=a.categoryLevel2
+        JOIN(SELECT g.id as id,g.categoryName as categoryName  from app_category g
+        join app_info i
+        on g.id=i.categoryLevel3) as c3
+        on c3.id=a.categoryLevel3
+        JOIN(SELECT valueId,valueName FROM data_dictionary
+        WHERE typeCode= "APP_STATUS") as cs
+        on a.`status`=cs.valueId
+        left join app_version v
+        on a.id=v.appId  and a.versionId=v.id and a.status =1
+        <trim prefix="where" prefixOverrides="and | or">
+            <if test="flatformId!=null and flatformId!=0">
+                and flatformId=#{flatformId}
+            </if>
+            <if test=" categoryLevel1!=null and  categoryLevel1!=0">
+                and  categoryLevel1=#{categoryLevel1}
+            </if>
+            <if test=" categoryLevel2!=null and  categoryLevel2!=0">
+                and  categoryLevel2=#{categoryLevel2}
+            </if>
+            <if test=" categoryLevel2!=null and  categoryLevel2!=0">
+                and  categoryLevel3=#{categoryLevel3}
+            </if>
+            <if test=" softwareName!=null and  softwareName!=''">
+                and  softwareName like CONCAT('%',#{softwareName},'%')
+            </if>
+        </trim>
+        <if test="begin!=null and pageSize!=null">
+            limit #{begin},#{pageSize}
+        </if>
+
+    </select>
+</mapper>

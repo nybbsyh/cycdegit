@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--mapper的命名空间 必须和某一个DAO的接口文件路径一致（包名.接口）-->
+<mapper namespace="cn.App.dao.DevUser.DevUserMapper">
+    <insert id="addSoftware">
+        insert into app_info(softwareName,APKName,supportROM,interfaceLanguage,softwareSize,downloads,flatformId,categoryLevel1,categoryLevel2,categoryLevel3,status,appInfo,logoPicPath,createdBy,creationDate)
+        values ( #{softwareName},#{APKName},#{supportROM},#{interfaceLanguage},#{softwareSize},#{downloads},#{flatformId},#{categoryLevel1},#{categoryLevel2},#{categoryLevel3},#{status},#{appInfo},#{logoPicPath},
+                 #{createdBy},#{creationDate})
+    </insert>
+    <update id="updateinfoid">
+        update app_info <set>
+        <if test="softwareName!=null and softwareName!=''">softwareName=#{softwareName},</if>
+        <if test="APKName!=null and APKName!=''">APKName=#{APKName},</if>
+        <if test="supportROM!=null and supportROM!=''">supportROM=#{supportROM},</if>
+        <if test="interfaceLanguage!=null">interfaceLanguage=#{interfaceLanguage},</if>
+        <if test="softwareSize!=null ">softwareSize=#{softwareSize},</if>
+        <if test="downloads!=null and downloads!=''">downloads=#{downloads},</if>
+        <if test="flatformId!=null">flatformId=#{flatformId},</if>
+        <if test="categoryLevel1!=null ">categoryLevel1=#{categoryLevel1},</if>
+        <if test="categoryLevel2!=null">categoryLevel2=#{categoryLevel2},</if>
+        <if test="categoryLevel3!=null ">categoryLevel3=#{categoryLevel3},</if>
+        <if test="status!=null">status=#{status},</if>
+        <if test="logoPicPath!=null and logoPicPath!='' ">logoPicPath=#{logoPicPath},</if>
+        <if test=" appInfo!=null">appInfo=#{appInfo},</if>
+    </set>
+        where id=#{id}
+    </update>
+    <update id="UpdateappId">
+      update app_info <set>
+      versionId = LAST_INSERT_ID()
+    </set>
+        where id = #{id}
+    </update>
+    <update id="modifystate">
+        update app_info <set>
+        <if test="status!=null and status!=0 ">status=#{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    <update id="Updateimg">
+        UPDATE app_info SET logoPicPath="" WHERE id=#{id}
+    </update>
+    <select id="selsectDevUserByCode" resultType="cn.App.entity.devUser">
+        select *from dev_user where devCode=#{devCode}
+    </select>
+    <select id="selectListInfo" resultType="cn.App.entity.info">
+        SELECT DISTINCT a.versionId,a.softwareName,a.APKName,a.softwareSize,c.valueName as flatformName,c1.categoryName AS categoryLevel1Name,
+                        c2.categoryName AS categoryLevel2Name,c3.categoryName AS categoryLevel3Name,cs.valueName as statusName,
+                        a.downloads,a.status,a.id,a.categoryLevel1,a.categoryLevel2,a.categoryLevel3,v.versionNo
+        FROM app_info a
+                 JOIN(SELECT valueId,valueName FROM data_dictionary
+                      WHERE typeCode= "APP_FLATFORM") as c
+                     on a.flatformId=c.valueId
+                 JOIN(SELECT g.id as id,g.categoryName as categoryName  from app_category g
+                                                                                 join app_info i
+                                                                                      on g.id=i.categoryLevel1) as c1
+                     on c1.id=a.categoryLevel1
+                 JOIN(SELECT g.id as id,g.categoryName as categoryName  from app_category g
+                                                                                 join app_info i
+                                                                                      on g.id=i.categoryLevel2) as c2
+                     on c2.id=a.categoryLevel2
+                 JOIN(SELECT g.id as id,g.categoryName as categoryName  from app_category g
+                                                                                 join app_info i
+                                                                                      on g.id=i.categoryLevel3) as c3
+                     on c3.id=a.categoryLevel3
+                 JOIN(SELECT valueId,valueName FROM data_dictionary
+                      WHERE typeCode= "APP_STATUS") as cs
+                     on a.`status`=cs.valueId
+                 left join app_version v
+                           on a.id=v.appId and a.versionId=v.id
+           <trim prefix="where" prefixOverrides="and | or">
+               <if test="statusName!=null and statusName!=''">
+                   and status=#{statusName}
+               </if>
+               <if test="flatformId!=null and flatformId!=0">
+                   and flatformId=#{flatformId}
+               </if>
+               <if test=" categoryLevel1!=null and  categoryLevel1!=0">
+                   and  categoryLevel1=#{categoryLevel1}
+               </if>
+               <if test=" categoryLevel2!=null and  categoryLevel2!=0">
+                   and  categoryLevel2=#{categoryLevel2}
+               </if>
+               <if test=" categoryLevel2!=null and  categoryLevel2!=0">
+                   and  categoryLevel3=#{categoryLevel3}
+               </if>
+               <if test=" softwareName!=null and  softwareName!=''">
+                   and  softwareName like CONCAT('%',#{softwareName},'%')
+               </if>
+           </trim>
+           <if test="begin!=null and pageSize!=null">
+            limit #{begin},#{pageSize}
+           </if>
+    </select>
+    <select id="getcount" resultType="java.lang.Integer">
+        select COUNT(1)
+        from app_info
+        <trim prefix="where" prefixOverrides="and | or">
+            <if test="statusName!=null and statusName!=''">
+                and status=#{statusName}
+            </if>
+            <if test="flatformId!=null and flatformId!=0">
+                and flatformId=#{flatformId}
+            </if>
+            <if test=" categoryLevel1!=null and  categoryLevel1!=0">
+                and  categoryLevel1=#{categoryLevel1}
+            </if>
+            <if test=" categoryLevel2!=null and  categoryLevel2!=0">
+                and  categoryLevel2=#{categoryLevel2}
+            </if>
+            <if test=" categoryLevel2!=null and  categoryLevel2!=0">
+                and  categoryLevel3=#{categoryLevel3}
+            </if>
+            <if test="softwareName!=null and softwareName!=''">
+                and  softwareName like CONCAT('%',#{softwareName},'%')
+            </if>
+        </trim>
+    </select>
+    <select id="findApk" resultType="cn.App.entity.info">
+        SELECT * FROM app_info WHERE APKName=#{APKName}
+    </select>
+    <select id="selectinfoid" resultType="cn.App.entity.info">
+        SELECT
+            a.id,
+            a.softwareName,
+            a.APKName,
+            a.supportROM,
+            a.interfaceLanguage,
+            a.softwareSize,
+            a.updateDate,
+            a.devId,
+            a.appInfo,
+            d1.valueName statusName,
+            a.status,
+            a.onSaleDate,
+            a.offSaleDate,
+            d2.valueName flatformName,
+            a.flatformId,
+            c.categoryName categoryLevel3Name,
+            a.categoryLevel3,
+            a.downloads,
+            a.createdBy,
+            a.creationDate,
+            a.modifyBy,
+            a.modifyDate,
+            r.categoryName categoryLevel1Name,
+            a.categoryLevel1,
+            g.categoryName categoryLevel2Name,
+            a.categoryLevel2,
+            a.logoPicPath,
+            a.logoLocPath,
+            v.versionNo versionNo,
+            a.versionId
+        FROM app_info  a
+                 left join
+             (
+                 SELECT
+                     typeCode,valueId,valueName
+                 FROM data_dictionary
+                 WHERE typeCode = 'APP_STATUS'
+             ) d1
+             ON	d1.valueId = a.`status`
+                 left join
+             (
+                 SELECT
+                     typeCode,valueId,valueName
+                 FROM	data_dictionary
+                 WHERE typeCode = 'APP_FLATFORM'
+             ) d2
+             ON d2.valueId = a.flatformId
+                 left join app_category c on a.categoryLevel3=c.id
+                 left join app_category g on a.categoryLevel2=g.id
+                 left join app_category r on a.categoryLevel1=r.id
+                 left join app_version v on a.versionId = v.id
+        where a.id = #{id}
+    </select>
+    <select id="findstatus" resultType="cn.App.entity.info">
+        SELECT * from app_info WHERE id=#{id}
+    </select>
+</mapper>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--mapper的命名空间 必须和某一个DAO的接口文件路径一致（包名.接口）-->
+<mapper namespace="cn.App.dao.dictionary.DictionMapper">
+
+    <select id="getvalueName" resultType="cn.App.entity.dictionary">
+        select * from data_dictionary where typeCode='APP_STATUS'
+    </select>
+    <select id="getflatFormList" resultType="cn.App.entity.dictionary">
+        select * from data_dictionary where typeCode='APP_FLATFORM'
+    </select>
+    <select id="getdyNamicflatFormList" resultType="cn.App.entity.dictionary">
+        select * from data_dictionary where typeCode=#{typeCode}
+    </select>
+</mapper>
